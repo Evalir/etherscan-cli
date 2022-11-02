@@ -13,7 +13,24 @@ enum Commands {
     Gas,
     // compose this as this needs further subcommands for different etherscan methods
     // see: https://docs.rs/clap/latest/clap/_derive/_cookbook/git_derive/index.html#example-git-like-cli-derive-api
-    Account { address: String },
+    Account(Account),
+}
+
+#[derive(Debug, Args)]
+struct Account {
+    #[command(subcommand)]
+    command: Option<AccountCommands>,
+}
+
+#[derive(Debug, Subcommand)]
+enum AccountCommands {
+    Balance {
+        address: String,
+    },
+    ErcBalance {
+        address: String,
+        contract_address: String,
+    },
 }
 
 fn main() {
