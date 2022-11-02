@@ -1,4 +1,5 @@
 use clap::{Args, Parser, Subcommand};
+use ethers_core::types::H160;
 
 mod gas;
 
@@ -27,11 +28,11 @@ struct Account {
 #[derive(Debug, Subcommand)]
 enum AccountCommands {
     Balance {
-        address: String,
+        address: H160,
     },
     ErcBalance {
-        address: String,
-        contract_address: String,
+        address: H160,
+        contract_address: H160,
     },
 }
 
