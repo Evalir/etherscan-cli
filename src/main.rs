@@ -1,9 +1,13 @@
 use clap::{Args, Parser, Subcommand};
 
+mod gas;
+
 #[derive(Debug, Parser)]
 #[command(name = "etherscan")]
 #[command(about = "A CLI to interact with etherscan", long_about = None)]
 struct Cli {
+    #[arg(short, long)]
+    api_key: Option<String>,
     #[command(subcommand)]
     command: Commands,
 }
@@ -11,8 +15,6 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Commands {
     Gas,
-    // compose this as this needs further subcommands for different etherscan methods
-    // see: https://docs.rs/clap/latest/clap/_derive/_cookbook/git_derive/index.html#example-git-like-cli-derive-api
     Account(Account),
 }
 
@@ -34,5 +36,18 @@ enum AccountCommands {
 }
 
 fn main() {
+    let args = Cli::parse();
+
+    match args.command {
+        Commands::Gas => {
+            gas::get_gas();
+            println!("get gas")
+        }
+        _ => {
+            unimplemented!()
+        }
+    }
+
+    println!("{:?}", args);
     println!("Hello, world!");
 }
