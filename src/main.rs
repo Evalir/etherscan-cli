@@ -1,7 +1,8 @@
 use clap::{Args, Parser, Subcommand};
+use dotenv;
 use ethers_core::types::H160;
 
-mod gas;
+mod etherscan;
 
 #[derive(Debug, Parser)]
 #[command(name = "etherscan")]
@@ -37,18 +38,18 @@ enum AccountCommands {
 }
 
 fn main() {
+    dotenv::dotenv().unwrap();
     let args = Cli::parse();
 
     match args.command {
-        Commands::Gas => {
-            gas::get_gas();
-            println!("get gas")
-        }
+        Commands::Gas => match etherscan::get_gas() {
+            Err(err) => {
+                println!("There was an err fetching the gas price: {}", err);
+            }
+            _ => {}
+        },
         _ => {
             unimplemented!()
         }
     }
-
-    println!("{:?}", args);
-    println!("Hello, world!");
 }
