@@ -27,13 +27,23 @@ struct EtherscanApiResponse {
     result: Option<GasResult>,
 }
 
-pub fn get_gas() -> Result<()> {
+enum EtherscanApiRoute {
+    Gas,
+}
+
+fn build_etherscan_route(route: EtherscanApiRoute) -> String {
     let etherscan_api_key = dotenv::var("ETHERSCAN_API_KEY").unwrap();
 
-    let url = format!(
-        "{}?module=gastracker&action=gasoracle&apikey={}",
-        ETHERSCAN_BASE_URL, etherscan_api_key
-    );
+    match route {
+        EtherscanApiRoute::Gas => format!(
+            "{}?module=gastracker&action=gasoracle&apikey={}",
+            ETHERSCAN_BASE_URL, etherscan_api_key
+        ),
+    }
+}
+
+pub fn get_gas() -> Result<()> {
+    let url = build_etherscan_route(EtherscanApiRoute::Gas);
 
     let res = reqwest::blocking::get(url)?.json::<EtherscanApiResponse>()?;
 
