@@ -17,6 +17,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Commands {
     Gas,
+    Price,
     Account(Account),
 }
 
@@ -43,6 +44,12 @@ fn main() {
 
     match args.command {
         Commands::Gas => match etherscan::get_gas() {
+            Err(err) => {
+                println!("There was an err fetching the gas price: {}", err);
+            }
+            _ => {}
+        },
+        Commands::Price => match etherscan::get_eth_price() {
             Err(err) => {
                 println!("There was an err fetching the gas price: {}", err);
             }
