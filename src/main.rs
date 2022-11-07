@@ -1,5 +1,4 @@
 use clap::{Args, Parser, Subcommand};
-use dotenv;
 use ethers::core::types::H160;
 
 mod etherscan;
