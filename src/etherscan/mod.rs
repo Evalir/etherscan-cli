@@ -1,31 +1,31 @@
 use std::usize;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use reqwest;
 use serde::{Deserialize, Serialize};
 
 static ETHERSCAN_BASE_URL: &str = "https://api.etherscan.io/api";
 
 #[derive(Serialize, Deserialize, Debug)]
-struct GasResult {
+pub struct GasResult {
     #[serde(default, rename(deserialize = "LastBlock"))]
-    last_block: String,
+    pub last_block: String,
     #[serde(default, rename(deserialize = "SafeGasPrice"))]
-    safe_gas_price: String,
+    pub safe_gas_price: String,
     #[serde(default, rename(deserialize = "ProposeGasPrice"))]
-    propose_gas_price: String,
+    pub propose_gas_price: String,
     #[serde(default, rename(deserialize = "FastGasPrice"))]
-    fast_gas_price: String,
+    pub fast_gas_price: String,
     #[serde(default, rename(deserialize = "suggestBaseFee"))]
-    suggested_base_fee: String,
+    pub suggested_base_fee: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct PriceResult {
+pub struct PriceResult {
     #[serde(default, rename(deserialize = "ethusd"))]
-    eth_usd_price: String,
+    pub eth_usd_price: String,
     #[serde(default, rename(deserialize = "ethbtc"))]
-    eth_btc_price: String,
+    pub eth_btc_price: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -74,41 +74,24 @@ fn build_etherscan_route(route: EtherscanApiRoute) -> String {
     }
 }
 
-pub fn get_gas() -> Result<()> {
+pub fn get_gas() -> Result<GasResult> {
     let url = build_etherscan_route(EtherscanApiRoute::Gas);
 
     let res = reqwest::blocking::get(url)?.json::<EtherscanGasResponse>()?;
 
     match res.result {
-        Some(gas_info) => {
-            println!("Gas info:");
-            println!("Safe Gas Price: {}", gas_info.safe_gas_price);
-            println!("Propose Gas Price: {}", gas_info.propose_gas_price);
-            println!("Fast Gas Price: {}", gas_info.fast_gas_price);
-        }
-        _ => {
-            println!("Error while fetching info.");
-        }
+        Some(gas_info) => Ok(gas_info),
+        None => Err(anyhow!("Could not fetch gas info")),
     }
-
-    Ok(())
 }
 
-pub fn get_eth_price() -> Result<()> {
+pub fn get_eth_price() -> Result<PriceResult> {
     let url = build_etherscan_route(EtherscanApiRoute::Price);
 
     let res = reqwest::blocking::get(url)?.json::<EtherscanPriceResponse>()?;
 
     match res.result {
-        Some(price_info) => {
-            println!("price info:");
-            println!("ETH/USD Price: {}", price_info.eth_usd_price);
-            println!("ETH/BTC Price: {}", price_info.eth_btc_price);
-        }
-        _ => {
-            println!("Error while fetching info.");
-        }
+        Some(price_info) => Ok(price_info),
+        None => Err(anyhow!("Could not fetch price info")),
     }
-
-    Ok(())
 }

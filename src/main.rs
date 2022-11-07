@@ -44,16 +44,25 @@ fn main() {
 
     match args.command {
         Commands::Gas => match etherscan::get_gas() {
-            Err(err) => {
-                println!("There was an err fetching the gas price: {}", err);
+            Ok(gas_info) => {
+                println!("Gas info:");
+                println!("Safe Gas Price: {}", gas_info.safe_gas_price);
+                println!("Propose Gas Price: {}", gas_info.propose_gas_price);
+                println!("Fast Gas Price: {}", gas_info.fast_gas_price);
             }
-            _ => {}
+            Err(err) => {
+                println!("{}", err);
+            }
         },
         Commands::Price => match etherscan::get_eth_price() {
-            Err(err) => {
-                println!("There was an err fetching the gas price: {}", err);
+            Ok(price_info) => {
+                println!("price info:");
+                println!("ETH/USD Price: {}", price_info.eth_usd_price);
+                println!("ETH/BTC Price: {}", price_info.eth_btc_price);
             }
-            _ => {}
+            Err(err) => {
+                println!("{}", err);
+            }
         },
         _ => {
             unimplemented!()
