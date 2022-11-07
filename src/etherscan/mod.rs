@@ -1,7 +1,6 @@
 use std::usize;
 
 use anyhow::{anyhow, Result};
-use reqwest;
 use serde::{Deserialize, Serialize};
 
 static ETHERSCAN_BASE_URL: &str = "https://api.etherscan.io/api";
