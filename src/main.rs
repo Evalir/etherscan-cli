@@ -16,9 +16,9 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    Account(Account),
     Gas,
     Price,
-    Account(Account),
 }
 
 #[derive(Debug, Args)]

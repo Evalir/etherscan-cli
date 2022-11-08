@@ -35,8 +35,8 @@ enum EtherscanResult {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct EtherscanApiResponse {
-    status: String,
     message: String,
+    status: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
