@@ -8,7 +8,7 @@ mod etherscan;
 #[command(name = "etherscan")]
 #[command(about = "A CLI to interact with etherscan", long_about = None)]
 struct Cli {
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     api_key: Option<String>,
     #[command(subcommand)]
     command: Commands,
