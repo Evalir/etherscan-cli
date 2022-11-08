@@ -58,39 +58,48 @@ enum EtherscanApiRoute {
     Price,
 }
 
-fn build_etherscan_route(route: EtherscanApiRoute) -> String {
-    let etherscan_api_key = dotenv::var("ETHERSCAN_API_KEY").unwrap();
-
-    match route {
-        EtherscanApiRoute::Gas => format!(
-            "{}?module=gastracker&action=gasoracle&apikey={}",
-            ETHERSCAN_BASE_URL, etherscan_api_key
-        ),
-        EtherscanApiRoute::Price => format!(
-            "{}?module=stats&action=ethprice&apikey={}",
-            ETHERSCAN_BASE_URL, etherscan_api_key
-        ),
-    }
+#[derive(Default, Debug)]
+pub struct Etherscan {
+    api_key: String,
 }
 
-pub fn get_gas() -> Result<GasResult> {
-    let url = build_etherscan_route(EtherscanApiRoute::Gas);
-
-    let res = reqwest::blocking::get(url)?.json::<EtherscanGasResponse>()?;
-
-    match res.result {
-        Some(gas_info) => Ok(gas_info),
-        None => Err(anyhow!("Could not fetch gas info")),
+impl Etherscan {
+    pub fn new(api_key: String) -> Etherscan {
+        Etherscan { api_key }
     }
-}
 
-pub fn get_eth_price() -> Result<PriceResult> {
-    let url = build_etherscan_route(EtherscanApiRoute::Price);
+    fn build_etherscan_route(&self, route: EtherscanApiRoute) -> String {
+        match route {
+            EtherscanApiRoute::Gas => format!(
+                "{}?module=gastracker&action=gasoracle&apikey={}",
+                ETHERSCAN_BASE_URL, self.api_key
+            ),
+            EtherscanApiRoute::Price => format!(
+                "{}?module=stats&action=ethprice&apikey={}",
+                ETHERSCAN_BASE_URL, self.api_key
+            ),
+        }
+    }
 
-    let res = reqwest::blocking::get(url)?.json::<EtherscanPriceResponse>()?;
+    pub fn get_gas(&self) -> Result<GasResult> {
+        let url = self.build_etherscan_route(EtherscanApiRoute::Gas);
 
-    match res.result {
-        Some(price_info) => Ok(price_info),
-        None => Err(anyhow!("Could not fetch price info")),
+        let res = reqwest::blocking::get(url)?.json::<EtherscanGasResponse>()?;
+
+        match res.result {
+            Some(gas_info) => Ok(gas_info),
+            None => Err(anyhow!("Could not fetch gas info")),
+        }
+    }
+
+    pub fn get_eth_price(&self) -> Result<PriceResult> {
+        let url = self.build_etherscan_route(EtherscanApiRoute::Price);
+
+        let res = reqwest::blocking::get(url)?.json::<EtherscanPriceResponse>()?;
+
+        match res.result {
+            Some(price_info) => Ok(price_info),
+            None => Err(anyhow!("Could not fetch price info")),
+        }
     }
 }

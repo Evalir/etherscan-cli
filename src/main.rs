@@ -1,4 +1,5 @@
 use clap::{Args, Parser, Subcommand};
+use dotenv::{dotenv, var};
 use ethers::core::types::H160;
 
 mod etherscan;
@@ -38,11 +39,22 @@ enum AccountCommands {
 }
 
 fn main() {
-    dotenv::dotenv().unwrap();
     let args = Cli::parse();
 
+    let api_key = match args.api_key {
+        Some(api_key) => api_key,
+        None => {
+            dotenv()
+                .expect("API Key not provided. Either use the --api-key option or provide an .env");
+            var("ETHERSCAN_API_KEY")
+                .expect("API Key not provided. Either use the --api-key option or provide an .env")
+        }
+    };
+
+    let etherscan = etherscan::Etherscan::new(api_key);
+
     match args.command {
-        Commands::Gas => match etherscan::get_gas() {
+        Commands::Gas => match etherscan.get_gas() {
             Ok(gas_info) => {
                 println!("Gas info:");
                 println!("Safe Gas Price: {}", gas_info.safe_gas_price);
@@ -53,7 +65,7 @@ fn main() {
                 println!("{}", err);
             }
         },
-        Commands::Price => match etherscan::get_eth_price() {
+        Commands::Price => match etherscan.get_eth_price() {
             Ok(price_info) => {
                 println!("price info:");
                 println!("ETH/USD Price: {}", price_info.eth_usd_price);
