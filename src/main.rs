@@ -3,6 +3,7 @@ use dotenv::{dotenv, var};
 use ethers::core::types::H160;
 
 mod etherscan;
+mod url;
 
 #[derive(Debug, Parser)]
 #[command(name = "etherscan")]
