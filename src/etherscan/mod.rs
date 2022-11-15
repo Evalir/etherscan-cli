@@ -28,9 +28,16 @@ pub struct PriceResult {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct EthBalanceResult {
+    #[serde(default, rename(deserialize = "result"))]
+    pub balance: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 enum EtherscanResult {
     GasResult(GasResult),
     PriceResult(PriceResult),
+    EthBalance(EthBalanceResult),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -51,6 +58,14 @@ struct EtherscanPriceResponse {
     #[serde(flatten)]
     status: EtherscanApiResponse,
     result: Option<PriceResult>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct EtherscanEthBalanceResponse {
+    #[serde(flatten)]
+    status: EtherscanApiResponse,
+    #[serde(flatten)]
+    result: Option<EthBalanceResult>,
 }
 
 enum EtherscanApiRoute {
