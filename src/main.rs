@@ -76,6 +76,14 @@ fn main() {
                 println!("{}", err);
             }
         },
+        Commands::Account(account) => match account.command {
+            Some(AccountCommands::Balance { address }) => {
+                println!("tamo aqui con addr {}", address);
+                let res = etherscan.get_eth_balance(address);
+                println!("{:?}", res);
+            }
+            _ => todo!(),
+        },
         _ => {
             unimplemented!()
         }
