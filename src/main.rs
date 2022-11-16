@@ -91,18 +91,27 @@ fn main() {
                             etherscan.get_eth_balance(address).unwrap(),
                             "ETH".to_string(),
                         ),
-                        Some(ticker) => (
-                            etherscan
-                                .get_token_balance(
-                                    address,
-                                    ethers::addressbook::contract(&ticker.to_lowercase())
-                                        .expect("Invalid token name")
-                                        .address(ethers::types::Chain::Mainnet)
-                                        .unwrap(),
+                        Some(ticker) => {
+                            if ticker.to_lowercase() == "eth" {
+                                (
+                                    etherscan.get_eth_balance(address).unwrap(),
+                                    "ETH".to_string(),
                                 )
-                                .unwrap(),
-                            ticker,
-                        ),
+                            } else {
+                                (
+                                    etherscan
+                                        .get_token_balance(
+                                            address,
+                                            ethers::addressbook::contract(&ticker.to_lowercase())
+                                                .expect("Invalid token name")
+                                                .address(ethers::types::Chain::Mainnet)
+                                                .unwrap(),
+                                        )
+                                        .unwrap(),
+                                    ticker,
+                                )
+                            }
+                        }
                     };
 
                     match decimals {
