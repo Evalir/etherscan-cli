@@ -3,7 +3,9 @@ use std::usize;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-static ETHERSCAN_BASE_URL: &str = "https://api.etherscan.io/api";
+use crate::url::URLBuilder;
+
+static ETHERSCAN_BASE_URL: &str = "api.etherscan.io/api";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GasResult {
@@ -68,11 +70,6 @@ struct EtherscanEthBalanceResponse {
     result: Option<EthBalanceResult>,
 }
 
-enum EtherscanApiRoute {
-    Gas,
-    Price,
-}
-
 #[derive(Default, Debug)]
 pub struct Etherscan {
     api_key: String,
@@ -83,21 +80,14 @@ impl Etherscan {
         Etherscan { api_key }
     }
 
-    fn build_etherscan_route(&self, route: EtherscanApiRoute) -> String {
-        match route {
-            EtherscanApiRoute::Gas => format!(
-                "{}?module=gastracker&action=gasoracle&apikey={}",
-                ETHERSCAN_BASE_URL, self.api_key
-            ),
-            EtherscanApiRoute::Price => format!(
-                "{}?module=stats&action=ethprice&apikey={}",
-                ETHERSCAN_BASE_URL, self.api_key
-            ),
-        }
-    }
-
     pub fn get_gas(&self) -> Result<GasResult> {
-        let url = self.build_etherscan_route(EtherscanApiRoute::Gas);
+        let url = URLBuilder::new()
+            .set_protocol("https")
+            .set_host(ETHERSCAN_BASE_URL)
+            .add_param("module", "gastracker")
+            .add_param("action", "gasoracle")
+            .add_param("apikey", &self.api_key)
+            .build();
 
         let res = reqwest::blocking::get(url)?.json::<EtherscanGasResponse>()?;
 
@@ -108,7 +98,13 @@ impl Etherscan {
     }
 
     pub fn get_eth_price(&self) -> Result<PriceResult> {
-        let url = self.build_etherscan_route(EtherscanApiRoute::Price);
+        let url = URLBuilder::new()
+            .set_protocol("http")
+            .set_host(ETHERSCAN_BASE_URL)
+            .add_param("module", "stats")
+            .add_param("action", "ethprice")
+            .add_param("apikey", &self.api_key)
+            .build();
 
         let res = reqwest::blocking::get(url)?.json::<EtherscanPriceResponse>()?;
 
