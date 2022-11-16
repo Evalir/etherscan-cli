@@ -96,8 +96,5 @@ fn main() {
             }
             _ => todo!(),
         },
-        _ => {
-            unimplemented!()
-        }
     }
 }
