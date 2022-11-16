@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 use dotenv::{dotenv, var};
-use ethers::core::types::H160;
+use ethers::{core::types::H160, types::U256};
 
 mod etherscan;
 mod url;
@@ -32,6 +32,9 @@ struct Account {
 enum AccountCommands {
     Balance {
         address: H160,
+        token: Option<String>,
+        #[arg(short = 'd', long = "decimals")]
+        decimals: Option<usize>,
     },
     ErcBalance {
         address: H160,
@@ -77,20 +80,66 @@ fn main() {
             }
         },
         Commands::Account(account) => match account.command {
-            Some(AccountCommands::Balance { address }) => {
-                let res = etherscan.get_eth_balance(address);
+            Some(AccountCommands::Balance {
+                address,
+                token,
+                decimals,
+            }) => {
+                let (balance, token_name) = match token {
+                    None => (
+                        etherscan.get_balance(address, None).unwrap(),
+                        "ETH".to_string(),
+                    ),
+                    Some(ticker) => {
+                        if ticker.to_lowercase() == "eth" {
+                            (
+                                etherscan.get_balance(address, None).unwrap(),
+                                "ETH".to_string(),
+                            )
+                        } else {
+                            (
+                                etherscan
+                                    .get_balance(
+                                        address,
+                                        Some(
+                                            ethers::addressbook::contract(&ticker.to_lowercase())
+                                                .expect("Invalid token name")
+                                                .address(ethers::types::Chain::Mainnet)
+                                                .unwrap(),
+                                        ),
+                                    )
+                                    .unwrap(),
+                                ticker,
+                            )
+                        }
+                    }
+                };
 
-                match res {
-                    Ok(balance) => {
-                        let parsed_balance =
-                            ethers::core::utils::parse_units(balance, "wei").unwrap();
+                match decimals {
+                    None => {
                         println!(
-                            "ETH Balance: {}",
-                            ethers::core::utils::format_units(parsed_balance, "ether").unwrap()
+                            "{} Balance: {}",
+                            token_name,
+                            ethers::core::utils::format_units(
+                                U256::from_dec_str(&balance).unwrap(),
+                                "ether"
+                            )
+                            .unwrap(),
                         )
                     }
-                    Err(err) => {
-                        println!("{}", err)
+                    Some(decimals) => {
+                        println!(
+                            "{} balance: {}",
+                            token_name,
+                            ethers::core::utils::format_units(
+                                U256::from_dec_str(&balance)
+                                    .expect("Malformed balance input from Etherscan"),
+                                decimals
+                            )
+                            .expect(
+                                "Could not format units properly. Did you input valid decimals?"
+                            )
+                        );
                     }
                 }
             }

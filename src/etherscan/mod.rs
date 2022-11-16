@@ -87,27 +87,43 @@ impl Etherscan {
         }
     }
 
-    pub fn get_eth_balance(&self, address: H160) -> Result<String> {
-        let url = URLBuilder::new()
-            .set_protocol("https")
-            .set_host(ETHERSCAN_BASE_URL)
-            .add_param("module", "account")
-            .add_param("action", "balance")
-            .add_param(
-                "address",
-                &format!("0x{}", hex::encode(address.to_fixed_bytes())),
-            )
-            .add_param("tag", "latest")
-            .add_param("apikey", &self.api_key)
-            .build();
+    pub fn get_balance(&self, address: H160, token_address: Option<H160>) -> Result<String> {
+        let url = match token_address {
+            None => URLBuilder::new()
+                .set_protocol("https")
+                .set_host(ETHERSCAN_BASE_URL)
+                .add_param("module", "account")
+                .add_param("action", "balance")
+                .add_param(
+                    "address",
+                    &format!("0x{}", hex::encode(address.to_fixed_bytes())),
+                )
+                .add_param("tag", "latest")
+                .add_param("apikey", &self.api_key)
+                .build(),
+            Some(token_address) => URLBuilder::new()
+                .set_protocol("https")
+                .set_host(ETHERSCAN_BASE_URL)
+                .add_param("module", "account")
+                .add_param("action", "tokenbalance")
+                .add_param(
+                    "address",
+                    &format!("0x{}", hex::encode(address.to_fixed_bytes())),
+                )
+                .add_param(
+                    "contractaddress",
+                    &format!("0x{}", hex::encode(token_address.to_fixed_bytes())),
+                )
+                .add_param("tag", "latest")
+                .add_param("apikey", &self.api_key)
+                .build(),
+        };
 
         let res = reqwest::blocking::get(url)?.json::<EtherscanApiResponse<String>>()?;
 
         match res.result {
-            Some(eth_balance) => Ok(eth_balance),
-            None => Err(anyhow!(
-                "Could not fetch eth balance for the account specified"
-            )),
+            Some(balance) => Ok(balance),
+            None => Err(anyhow!("Could not fetch balance for the account specified")),
         }
     }
 }
