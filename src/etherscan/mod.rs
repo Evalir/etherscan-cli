@@ -1,6 +1,7 @@
 use std::usize;
 
 use anyhow::{anyhow, Result};
+use ethers::types::H160;
 use serde::{Deserialize, Serialize};
 
 use crate::url::URLBuilder;
@@ -36,38 +37,10 @@ pub struct EthBalanceResult {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-enum EtherscanResult {
-    GasResult(GasResult),
-    PriceResult(PriceResult),
-    EthBalance(EthBalanceResult),
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct EtherscanApiResponse {
+struct EtherscanApiResponse<T> {
     message: String,
     status: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct EtherscanGasResponse {
-    #[serde(flatten)]
-    status: EtherscanApiResponse,
-    result: Option<GasResult>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct EtherscanPriceResponse {
-    #[serde(flatten)]
-    status: EtherscanApiResponse,
-    result: Option<PriceResult>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct EtherscanEthBalanceResponse {
-    #[serde(flatten)]
-    status: EtherscanApiResponse,
-    #[serde(flatten)]
-    result: Option<EthBalanceResult>,
+    result: Option<T>,
 }
 
 #[derive(Default, Debug)]
@@ -89,7 +62,7 @@ impl Etherscan {
             .add_param("apikey", &self.api_key)
             .build();
 
-        let res = reqwest::blocking::get(url)?.json::<EtherscanGasResponse>()?;
+        let res = reqwest::blocking::get(url)?.json::<EtherscanApiResponse<GasResult>>()?;
 
         match res.result {
             Some(gas_info) => Ok(gas_info),
@@ -106,11 +79,39 @@ impl Etherscan {
             .add_param("apikey", &self.api_key)
             .build();
 
-        let res = reqwest::blocking::get(url)?.json::<EtherscanPriceResponse>()?;
+        let res = reqwest::blocking::get(url)?.json::<EtherscanApiResponse<PriceResult>>()?;
 
         match res.result {
             Some(price_info) => Ok(price_info),
             None => Err(anyhow!("Could not fetch price info")),
+        }
+    }
+
+    pub fn get_eth_balance(&self, address: H160) -> Result<String> {
+        let url = URLBuilder::new()
+            .set_protocol("https")
+            .set_host(ETHERSCAN_BASE_URL)
+            .add_param("module", "account")
+            .add_param("action", "balance")
+            .add_param(
+                "address",
+                &format!("0x{}", hex::encode(address.to_fixed_bytes())),
+            )
+            .add_param("tag", "latest")
+            .add_param("apikey", &self.api_key)
+            .build();
+
+        println!("{}", &url);
+
+        let res = reqwest::blocking::get(url)?.json::<EtherscanApiResponse<String>>()?;
+
+        println!("{:?}", res);
+
+        match res.result {
+            Some(eth_balance) => Ok(eth_balance),
+            None => Err(anyhow!(
+                "Could not fetch eth balance for the account specified"
+            )),
         }
     }
 }
