@@ -101,11 +101,7 @@ impl Etherscan {
             .add_param("apikey", &self.api_key)
             .build();
 
-        println!("{}", &url);
-
         let res = reqwest::blocking::get(url)?.json::<EtherscanApiResponse<String>>()?;
-
-        println!("{:?}", res);
 
         match res.result {
             Some(eth_balance) => Ok(eth_balance),

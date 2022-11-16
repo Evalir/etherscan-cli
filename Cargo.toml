@@ -2,7 +2,7 @@
 name = "etherscan-cli"
 version = "0.0.2"
 edition = "2021"
-rust-version = "1.65"
+rust-version = "1.64"
 authors = ["Enrique Ortiz <hi@enriqueortiz.dev>"]
 description = "A CLI client for Etherscan"
 repository = "https://github.com/Evalir/etherscan-cli"
