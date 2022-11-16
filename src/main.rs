@@ -117,12 +117,14 @@ fn main() {
 
                 match decimals {
                     None => {
-                        let parsed_balance =
-                            ethers::core::utils::parse_units(balance, "wei").unwrap();
                         println!(
                             "{} Balance: {}",
                             token_name,
-                            ethers::core::utils::format_units(parsed_balance, "ether").unwrap(),
+                            ethers::core::utils::format_units(
+                                U256::from_dec_str(&balance).unwrap(),
+                                "ether"
+                            )
+                            .unwrap(),
                         )
                     }
                     Some(decimals) => {
