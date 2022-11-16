@@ -79,53 +79,54 @@ fn main() {
                 println!("{}", err);
             }
         },
-        Commands::Account(account) => {
-            match account.command {
-                Some(AccountCommands::Balance {
-                    address,
-                    token,
-                    decimals,
-                }) => {
-                    let (balance, token_name) = match token {
-                        None => (
-                            etherscan.get_eth_balance(address).unwrap(),
-                            "ETH".to_string(),
-                        ),
-                        Some(ticker) => {
-                            if ticker.to_lowercase() == "eth" {
-                                (
-                                    etherscan.get_eth_balance(address).unwrap(),
-                                    "ETH".to_string(),
-                                )
-                            } else {
-                                (
-                                    etherscan
-                                        .get_token_balance(
-                                            address,
+        Commands::Account(account) => match account.command {
+            Some(AccountCommands::Balance {
+                address,
+                token,
+                decimals,
+            }) => {
+                let (balance, token_name) = match token {
+                    None => (
+                        etherscan.get_balance(address, None).unwrap(),
+                        "ETH".to_string(),
+                    ),
+                    Some(ticker) => {
+                        if ticker.to_lowercase() == "eth" {
+                            (
+                                etherscan.get_balance(address, None).unwrap(),
+                                "ETH".to_string(),
+                            )
+                        } else {
+                            (
+                                etherscan
+                                    .get_balance(
+                                        address,
+                                        Some(
                                             ethers::addressbook::contract(&ticker.to_lowercase())
                                                 .expect("Invalid token name")
                                                 .address(ethers::types::Chain::Mainnet)
                                                 .unwrap(),
-                                        )
-                                        .unwrap(),
-                                    ticker,
-                                )
-                            }
-                        }
-                    };
-
-                    match decimals {
-                        None => {
-                            let parsed_balance =
-                                ethers::core::utils::parse_units(balance, "wei").unwrap();
-                            println!(
-                                "{} Balance: {}",
-                                token_name,
-                                ethers::core::utils::format_units(parsed_balance, "ether").unwrap(),
+                                        ),
+                                    )
+                                    .unwrap(),
+                                ticker,
                             )
                         }
-                        Some(decimals) => {
-                            println!(
+                    }
+                };
+
+                match decimals {
+                    None => {
+                        let parsed_balance =
+                            ethers::core::utils::parse_units(balance, "wei").unwrap();
+                        println!(
+                            "{} Balance: {}",
+                            token_name,
+                            ethers::core::utils::format_units(parsed_balance, "ether").unwrap(),
+                        )
+                    }
+                    Some(decimals) => {
+                        println!(
                             "{} balance: {}",
                             token_name,
                             ethers::core::utils::format_units(
@@ -133,13 +134,14 @@ fn main() {
                                     .expect("Malformed balance input from Etherscan"),
                                 decimals
                             )
-                            .expect("Could not format units properly. Did you input valid decimals?")
+                            .expect(
+                                "Could not format units properly. Did you input valid decimals?"
+                            )
                         );
-                        }
                     }
                 }
-                _ => todo!(),
             }
-        }
+            _ => todo!(),
+        },
     }
 }
