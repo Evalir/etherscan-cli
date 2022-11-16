@@ -18,3 +18,4 @@ anyhow = "1.0.66"
 clap = { version = "4.0.18", features=["derive"] }
 ethers = { git = "https://github.com/gakonst/ethers-rs", version = "1.0.0" }
 dotenv = "0.15.0"
+hex = "0.4.3"
