@@ -80,7 +80,20 @@ fn main() {
             Some(AccountCommands::Balance { address }) => {
                 println!("tamo aqui con addr {}", address);
                 let res = etherscan.get_eth_balance(address);
-                println!("{:?}", res);
+
+                match res {
+                    Ok(balance) => {
+                        let parsed_balance =
+                            ethers::core::utils::parse_units(balance, "wei").unwrap();
+                        println!(
+                            "ETH Balance: {}",
+                            ethers::core::utils::format_units(parsed_balance, "ether").unwrap()
+                        )
+                    }
+                    Err(err) => {
+                        println!("{}", err)
+                    }
+                }
             }
             _ => todo!(),
         },
